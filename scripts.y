@@ -29,22 +29,22 @@ file:   /* Nothing */
     |   entries
     ;
 
-entries:    entry
+entries:    entry               {//command_stack_push(all_commands, current_command);
+                                 current_args = init_str_stack(6);
+                                 current_argstack = init_argstack(6);}
        |    entries entry
        ;
 
-string:     STR
-      ;
-
-strings:    string
-       |    strings ',' string
+strings:    STR                  {str_stack_push(current_args, $1);}
+       |    strings ',' STR      {str_stack_push(current_args, $3);}
        ;
 
-arglists:   strings ';'
+arglists:   strings ';'          {argstack_push(current_argstack, current_args);}
         |   arglists strings ';'
         ;
 
-entry:  ID '{' arglists '}' ID ';'
+entry:  ID '{' arglists '}' ID ';' {current_command = init_command(current_argstack, $1);
+                                    command_stack_push(all_commands, current_command);}
      ;
 
 %%

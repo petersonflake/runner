@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 void print_str_stack(string_stack *stack)
 {
     for(int i = 0; i < stack->count; ++i) {
-        printf("%s ", stack->data[i]);
+        printf("arg %d: %s\n", i, stack->data[i]);
     }
     printf("\n");
 }
