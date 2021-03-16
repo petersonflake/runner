@@ -1,7 +1,15 @@
 %{
 #include <string.h>
 #include <stdio.h>
+#include "command.h"
 int yyerror(char *msg);
+command_stack *all_commands;
+
+command *current_command;
+
+string_stack *current_args;
+
+argstack *current_argstack;
 %}
 
 %union {
@@ -25,12 +33,15 @@ entries:    entry
        |    entries entry
        ;
 
-arglist:    STR ';' {printf("read %s\n", $1);}
-       |    arglist ',' STR
+string:     STR
+      ;
+
+strings:    string
+       |    strings ',' string
        ;
 
-arglists:   arglist
-        |   arglists arglist
+arglists:   strings ';'
+        |   arglists strings ';'
         ;
 
 entry:  ID '{' arglists '}' ID ';'
