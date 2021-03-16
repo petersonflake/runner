@@ -8,8 +8,6 @@
 %option noyywrap
 
 %x COMMENT
-%x ARGS
-%x str
 %%
 
 ";"     {return ';';}
@@ -27,7 +25,6 @@
 "/*"                    {BEGIN(COMMENT);} /* C style comments */
 <COMMENT>[^*]*
 <COMMENT>"*"+[^*/\n]*
-<COMMENT>\n
 <COMMENT>"*"+"/"        {BEGIN(INITIAL);}
 
 #.*\n    { /* Ignore comments */ }
