@@ -1,5 +1,5 @@
-testing: scripts.tab.c lex.scr.c
-	gcc -o testing scripts.tab.c lex.scr.c
+testing: scripts.tab.c lex.scr.c main.c
+	gcc -o testing scripts.tab.c lex.scr.c main.c string_stack.c argstack.c
 
 scripts.tab.c: scripts.y
 	bison -d scripts.y

@@ -38,11 +38,11 @@ entry:  ID '{' arglists '}' ID ';'
 
 %%
 
-int main(int argc, char **argv)
-{
-    scrparse();
-    return 0;
-}
+//int main(int argc, char **argv)
+//{
+//    scrparse();
+//    return 0;
+//}
 
 int yyerror(char *msg)
 {
