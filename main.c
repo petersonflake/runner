@@ -14,6 +14,10 @@ extern argstack *current_argstack;
 
 void print_commands(command_stack *stack);
 
+void print_str_stack(string_stack *stack);
+
+void print_arg_stack(argstack *args);
+
 int main(int argc, char **argv)
 {
     all_commands = init_cmd_stack(6);
@@ -42,18 +46,27 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void print_str_stack(string_stack *stack)
+{
+    for(int i = 0; i < stack->count; ++i) {
+        printf("%s ", stack->data[i]);
+    }
+    printf("\n");
+}
+
+void print_arg_stack(argstack *args)
+{
+    printf("Arg stack: \n");
+    for(int i = 0; i < args->count; ++i) {
+        print_str_stack(args->data[i]);
+    }
+}
+
 void print_commands(command_stack *stack)
 {
     for(int i = 0; i < stack->count; ++i) {
-        printf("Command: %s\n", stack->data[i]->text);
-        argstack *args = stack->data[i]->arguments;
-        for(int j = 0; j < args->count; ++j) {
-            string_stack *string = args->data[j];
-            for(int k = 0; k < string->count; ++k) {
-                char *str = string->data[k];
-                printf("%s\n", str);
-            }
-        }
+        printf("command: %s\n", stack->data[i]->text);
+        print_arg_stack(stack->data[i]->arguments);
     }
 }
 
