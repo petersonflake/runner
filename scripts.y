@@ -50,9 +50,14 @@ arglists:   strings ';'          {argstack_push(current_argstack, current_args);
                                     str_stack_push(current_args, "NOT USED");}
         ;
 
-entry:  ID '{' arglists '}' ID ';' {current_command = init_command(current_argstack, $1, $5);
-                                    command_stack_push(all_commands, current_command);
-                                    current_command = NULL;}
+entry:  ID '{' arglists '}' ID ';'      {current_command = init_command(current_argstack, $1, $5);
+                                        command_stack_push(all_commands, current_command);
+                                        current_command = NULL;}
+    | STR ID '{' arglists '}' ID ';'    {current_command = init_command(current_argstack, $2, $6);
+                                        current_command->docstring = strdup($1);
+                                        command_stack_push(all_commands, current_command);
+                                        current_command = NULL;
+                                        }
      ;
 
 %%

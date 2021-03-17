@@ -25,13 +25,18 @@ void mark_cmd(command_stack *stack, char *id);
 
 void show_help();
 
-int main(int argc, char **argv)
+void dry_run(command_stack *stack);
+
+int verbosity = 0;
+
+int main(int argc, char **argv, char **envp)
 {
     int c;
-    int verbosity = 0;
+    //int verbosity = 0;
     int to_execute = 0;
     int show_commands = 0;
     int file_provided = 0;
+    int do_dry_run = 0;
 
     while(1) {
         static struct option long_options[] = {
@@ -40,11 +45,12 @@ int main(int argc, char **argv)
             {"help",    no_argument,            0,  'h'},
             {"show",    no_argument,            0,  's'},
             {"file",    required_argument,      0,  'f'},
+            {"dry-run", no_argument,            0,  'd'},
             {0,         0,                      0,   0 },
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "vehsf:", long_options, &option_index);
+        c = getopt_long(argc, argv, "vehsf:d", long_options, &option_index);
         if(c == -1) break;
 
         switch(c) {
@@ -70,6 +76,9 @@ int main(int argc, char **argv)
                 }
                 file_provided = 1;
                 break;
+            case 'd':
+                do_dry_run = 1;
+                break;
 
             case '?':
                 break;
@@ -88,7 +97,7 @@ int main(int argc, char **argv)
         scrin = fopen("test.txt", "r");
     if(scrin)
         scrparse();
-    if(optind >= argc) {
+    if(argc == 1) {
         print_commands(all_commands, 1);
         return 0;
     }
@@ -100,6 +109,10 @@ int main(int argc, char **argv)
     //argstack_free(args);
     if(show_commands)
         print_commands(all_commands, 0);
+    if(do_dry_run) {
+        dry_run(all_commands);
+        exit(EXIT_SUCCESS);
+    }
     if(to_execute)
         exec_all_cmds(all_commands);
     command_stack_free(all_commands);
@@ -160,4 +173,25 @@ void mark_cmd(command_stack *stack, char *id)
 void show_help()
 {
     printf("Usage here\n");
+}
+
+void dry_run(command_stack *stack)
+{
+    if(verbosity)
+        printf("Dry Run: showing commands to be executed.\n");
+    for(int i = 0; i < stack->count; ++i) {
+        command *cmd = stack->data[i];
+        if(!cmd->to_run) continue;
+        if(verbosity)
+            if(cmd->docstring) printf("%s\n", cmd->docstring);
+        for(int j = 0; j < cmd->arguments->count; ++j) {
+            argstack *arg_stack = cmd->arguments;
+            if(verbosity)
+                printf("\t%s ", cmd->text);
+            for(int k = 1; k < arg_stack->data[j]->count; ++k) {
+                printf("%s ", arg_stack->data[j]->data[k]);
+            }
+        }
+        printf("\n");
+    }
 }
