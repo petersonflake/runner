@@ -31,6 +31,10 @@ int main(int argc, char **argv)
     //argstack_free(args);
     print_commands(all_commands);
     exec_all_cmds(all_commands);
+    command_stack_free(all_commands);
+    if(current_argstack) argstack_free(current_argstack);
+    if(current_args) str_stack_free(current_args);
+    if(current_command) command_free(current_command);
     return 0;
 }
 

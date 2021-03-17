@@ -53,6 +53,13 @@ void command_exec(command *cmd)
 {
     for(int i = 0; i < cmd->arguments->count; ++i) {
         pid_t pid = fork();
+        /* Copy the name of the script into the first element of argv.  Manual says by convention,
+         * the first element of char *argv[] should be the name of the executable.  Copying just in
+         * case there are programs that rely on that.
+         */
+        char **argv = cmd->arguments->data[i]->data;
+        free(argv[0]);
+        argv[0] = strdup(cmd->text);
         if(!pid) {
             execvp(cmd->text, cmd->arguments->data[i]->data);
         } else {
