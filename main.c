@@ -94,7 +94,7 @@ int main(int argc, char **argv, char **envp)
      * If there is not a valid data directory anywhere, print a message and exit.
      */
     if(!file_provided) {
-        if(set_data_dir(data_dir)) {
+        if(set_data_dir(data_dir)) {            /* If return value not zero, no data directory was accessible */
             fprintf(stderr, "Unable to access data directory.\n");
             fprintf(stderr, "Please create one.\n");
             exit(EXIT_FAILURE);
@@ -109,14 +109,19 @@ int main(int argc, char **argv, char **envp)
         print_completions(all_commands);
         exit(EXIT_SUCCESS);
     }
-    if(argc == 1) {         /* If the user does not provide any arguments, show all commands */
-        print_commands(all_commands, 1);
-        return 0;
-    }
     if(optind < argc) {     /* All provided arguments will be marked for execution, or to be shown in a dry run, or in show mode */
-        while(optind < argc) {
-            mark_cmd(all_commands, argv[optind++]);
+        int i = optind;
+        while(i < argc) {
+            mark_cmd(all_commands, argv[i++]);
         }
+    }
+    if(optind == argc) {         /* If the user does not provide any arguments, mark all commands */
+        for(int i = 0; i < all_commands->count; ++i) {
+            all_commands->data[i]->to_run = 1;
+            to_execute = 0;     /* Ensure that the commands cannot be run to prevent running all by mistake */
+        }
+        //print_commands(all_commands, 1);
+        //return 0;
     }
     if(show_commands)
         print_commands(all_commands, 0);
