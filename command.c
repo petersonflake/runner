@@ -1,9 +1,10 @@
 #include "command.h"
 
-command* init_command(argstack *args, char *cmd)
+command* init_command(argstack *args, char *cmd, char *id)
 {
     command* tmp = malloc(sizeof(command));
     tmp->text = strdup(cmd);
+    tmp->id = strdup(id);
     tmp->to_run = 0;
     tmp->arguments = args;
     return tmp;
@@ -48,3 +49,14 @@ void command_stack_free(command_stack *cmd_stack)
     free(cmd_stack);
 }
 
+void command_exec(command *cmd)
+{
+    for(int i = 0; i < cmd->arguments->count; ++i) {
+        pid_t pid = fork();
+        if(!pid) {
+            execvp(cmd->text, cmd->arguments->data[i]->data);
+        } else {
+            wait(NULL);
+        }
+    }
+}

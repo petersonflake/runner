@@ -18,6 +18,7 @@ int argstack_push(argstack *stack, string_stack *strs)
         else exit(1);
     }
     stack->data[stack->count++] = strs;
+    stack->data[stack->count] = NULL;
     return stack->count;
 }
 

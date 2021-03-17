@@ -31,20 +31,28 @@ file:   /* Nothing */
 
 entries:    entry               {//command_stack_push(all_commands, current_command);
                                  current_args = init_str_stack(6);
+                                 str_stack_push(current_args, "NOT USED");
                                  current_argstack = init_argstack(6);}
-       |    entries entry
+       |    entries entry       {current_args = init_str_stack(6);
+                                 str_stack_push(current_args, "NOT USED");
+                                 current_argstack = init_argstack(6);}
        ;
 
 strings:    STR                  {str_stack_push(current_args, $1);}
        |    strings ',' STR      {str_stack_push(current_args, $3);}
        ;
 
-arglists:   strings ';'          {argstack_push(current_argstack, current_args);}
-        |   arglists strings ';'
+arglists:   strings ';'          {argstack_push(current_argstack, current_args);
+                                  current_args = init_str_stack(6);
+                                  str_stack_push(current_args, "NOT USED");}
+        |   arglists strings ';'    {argstack_push(current_argstack, current_args);
+                                    current_args = init_str_stack(6);
+                                    str_stack_push(current_args, "NOT USED");}
         ;
 
-entry:  ID '{' arglists '}' ID ';' {current_command = init_command(current_argstack, $1);
-                                    command_stack_push(all_commands, current_command);}
+entry:  ID '{' arglists '}' ID ';' {current_command = init_command(current_argstack, $1, $5);
+                                    command_stack_push(all_commands, current_command);
+                                    current_command = NULL;}
      ;
 
 %%
