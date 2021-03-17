@@ -31,18 +31,20 @@ int main(int argc, char **argv)
     int verbosity = 0;
     int to_execute = 0;
     int show_commands = 0;
+    int file_provided = 0;
 
     while(1) {
         static struct option long_options[] = {
-            {"verbose", no_argument,    0,  'v'},
-            {"exec",    no_argument,    0,  'e'},
-            {"help",    no_argument,    0,  'h'},
-            {"show",    no_argument,    0,  's'},
-            {0,         0,              0,   0},
+            {"verbose", no_argument,            0,  'v'},
+            {"exec",    no_argument,            0,  'e'},
+            {"help",    no_argument,            0,  'h'},
+            {"show",    no_argument,            0,  's'},
+            {"file",    required_argument,      0,  'f'},
+            {0,         0,                      0,   0 },
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "vehs", long_options, &option_index);
+        c = getopt_long(argc, argv, "vehsf:", long_options, &option_index);
         if(c == -1) break;
 
         switch(c) {
@@ -61,6 +63,14 @@ int main(int argc, char **argv)
             case 's':
                 show_commands = 1;
                 break;
+            case 'f':
+                if(!(scrin = fopen(optarg, "r"))) {
+                    printf("Unable to open file: %s\n", optarg);
+                    exit(1);
+                }
+                file_provided = 1;
+                break;
+
             case '?':
                 break;
 
@@ -74,16 +84,18 @@ int main(int argc, char **argv)
     current_args = init_str_stack(6);
     current_argstack = init_argstack(6);
     str_stack_push(current_args, "NOT USED");
-    scrin = fopen("test.txt", "r");
-    scrparse();
+    if(!file_provided)
+        scrin = fopen("test.txt", "r");
+    if(scrin)
+        scrparse();
+    if(optind >= argc) {
+        print_commands(all_commands, 1);
+        return 0;
+    }
     if(optind < argc) {
         while(optind < argc) {
             mark_cmd(all_commands, argv[optind++]);
         }
-    }
-    if(argc == 1) {
-        print_commands(all_commands, 1);
-        return 0;
     }
     //argstack_free(args);
     if(show_commands)
