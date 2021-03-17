@@ -20,7 +20,7 @@
 
 \"(([^\"]|\\\")*[^\\])?\"  {scrlval.string = strndup(scrtext+1, strlen(scrtext)-2); return STR;}
 
-[a-zA-Z_0-9]+   {scrlval.string = strdup(scrtext); return ID;}
+[a-zA-Z_0-9.]+   {scrlval.string = strdup(scrtext); return ID;}
 
 "/*"                    {BEGIN(COMMENT);} /* C style comments */
 <COMMENT>[^*]*

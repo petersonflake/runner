@@ -2,7 +2,9 @@
 #define COMMAND_H
 #include "argstack.h"
 #include <unistd.h>
+#include <stdio.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 typedef struct {
     argstack *arguments;
@@ -35,5 +37,9 @@ extern command_stack *all_commands;
 extern command *current_command;
 
 extern string_stack *current_args;
+
+extern int verbosity;
+
+extern char scripts_dir[4096];
 
 #endif
