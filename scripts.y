@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "command.h"
-int yyerror(char *msg);
+int yyerror(char *msg); /* Keep compiler from complaining. */
 command_stack *all_commands;
 
 command *current_command;
@@ -29,20 +29,21 @@ file:   /* Nothing */
     |   entries
     ;
 
-entries:    entry               {//command_stack_push(all_commands, current_command);
+entries:    entry               {/* Reset global variables */
                                  current_args = init_str_stack(6);
                                  str_stack_push(current_args, "NOT USED");
-                                 current_argstack = init_argstack(6);}
+                                 current_argstack = init_argstack(6);
+                                 }
        |    entries entry       {current_args = init_str_stack(6);
                                  str_stack_push(current_args, "NOT USED");
                                  current_argstack = init_argstack(6);}
        ;
 
-strings:    STR                  {str_stack_push(current_args, $1);}
-       |    strings ',' STR      {str_stack_push(current_args, $3);}
+strings:    STR                  {str_stack_push(current_args, $1);} /* Append string to current array of args */
+       |    strings ',' STR      {str_stack_push(current_args, $3);} /* TODO: String concatenation and variables */
        ;
 
-arglists:   strings ';'          {argstack_push(current_argstack, current_args);
+arglists:   strings ';'          {argstack_push(current_argstack, current_args); /* Append to array of arrays of strings */
                                   current_args = init_str_stack(6);
                                   str_stack_push(current_args, "NOT USED");}
         |   arglists strings ';'    {argstack_push(current_argstack, current_args);
@@ -62,12 +63,13 @@ entry:  ID '{' arglists '}' ID ';'      {current_command = init_command(current_
 
 %%
 
-//int main(int argc, char **argv)
-//{
-//    scrparse();
-//    return 0;
-//}
+/*
+ * No main function, we call scrparse() in main.c
+ */
 
+/*
+ * Print the error.  "Error: Syntax error" is super helpful, afterall.
+ */
 int yyerror(char *msg)
 {
     fprintf(stdout, "Error: %s\n", msg);

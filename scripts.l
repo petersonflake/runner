@@ -27,6 +27,6 @@
 <COMMENT>"*"+[^*/\n]*
 <COMMENT>"*"+"/"        {BEGIN(INITIAL);}
 
-#.*\n    { /* Ignore comments */ }
+#.*\n    { /* Ignore comments */ } /* Shell script style comments */
 
-.|\n    { /* Ignore the rest */ }
+.|\n    { /* Ignore the rest */ } /* Ignore anything we don't understand + newlines */

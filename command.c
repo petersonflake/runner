@@ -83,7 +83,7 @@ void command_exec(command *cmd)
                     if(verbosity)
                         fprintf(stdout, "Script or program \"%s\" not found.\n", cmd->text);
         } else {
-            wait(NULL);
+            wait(NULL); /* Wait for fork to exit before moving on to next command. */
         }
     }
 }

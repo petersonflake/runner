@@ -1,6 +1,11 @@
 #include "main.h"
+/* flex and bison both have prefix scr, for scripts */
 extern FILE* scrin;
 
+/* We need to initialize these variables before parsing anything
+ * The parser assigns values to the variables, then creates a command
+ * which is put onto the stack all_commands, which is an array.
+ * Variables are global because they're needed in scripts.y */
 extern command_stack *all_commands;
 
 extern command *current_command;
@@ -9,11 +14,12 @@ extern string_stack *current_args;
 
 extern argstack *current_argstack;
 
-int verbosity = 0;
+int verbosity = 0; /* Global so we don't have to pass it to every function */
 
-char data_dir[4096];
+/* Seems unlikely a path will be longer than 4095 characters */
+char data_dir[4096]; /* Where we read the files */
 
-char scripts_dir[4096];
+char scripts_dir[4096]; /* When executing a script, we check here before searching path */
 
 int main(int argc, char **argv, char **envp)
 {
@@ -88,7 +94,7 @@ int main(int argc, char **argv, char **envp)
     current_args = init_str_stack(6);
     current_argstack = init_argstack(6);        /* Must be initialized before we parse the files */
     str_stack_push(current_args, "NOT USED");   /* This will be replaced with */
-                                                /* the script name before execution */
+                                                /* the script name before execution in command_exec */
 
     /* If a file was not provided, check in XDG_CONFIG_HOME, in .config, and in the home directory.
      * If there is not a valid data directory anywhere, print a message and exit.
@@ -99,12 +105,13 @@ int main(int argc, char **argv, char **envp)
             fprintf(stderr, "Please create one.\n");
             exit(EXIT_FAILURE);
         }
-        nftw(data_dir, parse_file, FDS, FTW_NS);
+        nftw(data_dir, parse_file, FDS, FTW_NS); /* Travese whatever data directory was found first */
         sprintf(scripts_dir, "%s/%s", data_dir, "/scripts");
     } else {
         scrparse();         /* scrin is checked when the filename is passed, so no need to check here */
     }
 
+    /* Print all ids for bash tab completion */
     if(completions) {       /* For completions to work, we need to read the files, but do nothing else */
         print_completions(all_commands);
         exit(EXIT_SUCCESS);
@@ -138,6 +145,9 @@ int main(int argc, char **argv, char **envp)
     return 0;
 }
 
+/*
+ * Helper functions for showing command information.
+ */
 void print_str_stack(string_stack *stack)
 {
     printf("Arguments:\n");
@@ -169,6 +179,9 @@ void print_commands(command_stack *stack, int allflag)
     }
 }
 
+/*
+ * Execute every marked command.
+ */
 void exec_all_cmds(command_stack *stack)
 {
     for(int i = 0; i < stack->count; ++i) {
@@ -177,6 +190,9 @@ void exec_all_cmds(command_stack *stack)
     }
 }
 
+/*
+ * Mark every command with a matching id.
+ */
 void mark_cmd(command_stack *stack, char *id)
 {
     for(int i = 0; i < stack->count; ++i) {
@@ -199,18 +215,23 @@ void show_help()
     printf("Please see README or manual page for more information.\n");
 }
 
+/*
+ * Show what commands would be run, in the form <command> <args>...
+ */
 void dry_run(command_stack *stack)
 {
-    if(verbosity)
+    int printed_something = 0;
+    if(verbosity > 0)
         printf("Dry Run: showing commands to be executed.\n");
     for(int i = 0; i < stack->count; ++i) {
         command *cmd = stack->data[i];
         if(!cmd->to_run) continue;
-        if(verbosity)
+        printed_something = 1;
+        if(verbosity > 0)
             if(cmd->docstring) printf("%s\n", cmd->docstring);
         for(int j = 0; j < cmd->arguments->count; ++j) {
             argstack *arg_stack = cmd->arguments;
-            if(verbosity)
+            if(verbosity > 0)
                 printf("\t%s ", cmd->text);
             else printf("%s ", cmd->text);
             for(int k = 1; k < arg_stack->data[j]->count; ++k) {
@@ -219,6 +240,8 @@ void dry_run(command_stack *stack)
         }
         printf("\n");
     }
+    if(verbosity > 0)
+        if(!printed_something) fprintf(stderr, "No commands with that id found.\n");
 }
 
 void print_completions(command_stack *stack)

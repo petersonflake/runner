@@ -2,6 +2,13 @@
 #define ARGSTACK_H
 #include "string_stack.h"
 
+/*
+ * This structure holds an array of arrays of strings.
+ * Each array of strings holds the arguments passed to the
+ * command on a single run, so the argstack holds all
+ * the sets of arguments to be passed.
+ */
+
 typedef struct {
     int alloc;
     int count;
