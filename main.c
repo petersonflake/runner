@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <getopt.h>
 #include "scripts.tab.h"
 #include "command.h"
 
@@ -12,7 +13,7 @@ extern string_stack *current_args;
 
 extern argstack *current_argstack;
 
-void print_commands(command_stack *stack);
+void print_commands(command_stack *stack, int allflag);
 
 void print_str_stack(string_stack *stack);
 
@@ -20,17 +21,75 @@ void print_arg_stack(argstack *args);
 
 void exec_all_cmds(command_stack *stack);
 
+void mark_cmd(command_stack *stack, char *id);
+
+void show_help();
+
 int main(int argc, char **argv)
 {
+    int c;
+    int verbosity = 0;
+    int to_execute = 0;
+    int show_commands = 0;
+
+    while(1) {
+        static struct option long_options[] = {
+            {"verbose", no_argument,    0,  'v'},
+            {"exec",    no_argument,    0,  'e'},
+            {"help",    no_argument,    0,  'h'},
+            {"show",    no_argument,    0,  's'},
+            {0,         0,              0,   0},
+        };
+
+        int option_index = 0;
+        c = getopt_long(argc, argv, "vehs", long_options, &option_index);
+        if(c == -1) break;
+
+        switch(c) {
+            case 0:
+                break;
+
+            case 'v':
+                ++verbosity;
+                break;
+            case 'e':
+                to_execute = 1;
+                break;
+            case 'h':
+                show_help();
+                break;
+            case 's':
+                show_commands = 1;
+                break;
+            case '?':
+                break;
+
+            default:
+                abort();
+        }
+    }
+    if(!to_execute && !show_commands && argc > 1)
+        show_help();
     all_commands = init_cmd_stack(6);
     current_args = init_str_stack(6);
     current_argstack = init_argstack(6);
     str_stack_push(current_args, "NOT USED");
     scrin = fopen("test.txt", "r");
     scrparse();
+    if(optind < argc) {
+        while(optind < argc) {
+            mark_cmd(all_commands, argv[optind++]);
+        }
+    }
+    if(argc == 1) {
+        print_commands(all_commands, 1);
+        return 0;
+    }
     //argstack_free(args);
-    print_commands(all_commands);
-    exec_all_cmds(all_commands);
+    if(show_commands)
+        print_commands(all_commands, 0);
+    if(to_execute)
+        exec_all_cmds(all_commands);
     command_stack_free(all_commands);
     if(current_argstack) argstack_free(current_argstack);
     if(current_args) str_stack_free(current_args);
@@ -41,7 +100,7 @@ int main(int argc, char **argv)
 void print_str_stack(string_stack *stack)
 {
     printf("str stack:\n");
-    for(int i = 0; stack->data[i]; ++i) {
+    for(int i = 1; stack->data[i]; ++i) {
         printf("arg %d: %s\n", i, stack->data[i]);
     }
     printf("\n");
@@ -55,11 +114,16 @@ void print_arg_stack(argstack *args)
     }
 }
 
-void print_commands(command_stack *stack)
+void print_commands(command_stack *stack, int allflag)
 {
     for(int i = 0; i < stack->count; ++i) {
-        printf("command: %s\n", stack->data[i]->text);
-        printf("identifier: %s\n", stack->data[i]->id);
+        command *tmp = stack->data[i];
+        if(!allflag)
+            if(!tmp->to_run) continue;
+        printf("script: %s\n", tmp->text);
+        printf("id: %s\n", tmp->id);
+        if(tmp->docstring)
+            printf("Doc: %s\n", tmp->docstring);
         print_arg_stack(stack->data[i]->arguments);
     }
 }
@@ -67,6 +131,21 @@ void print_commands(command_stack *stack)
 void exec_all_cmds(command_stack *stack)
 {
     for(int i = 0; i < stack->count; ++i) {
-        command_exec(stack->data[i]);
+        if(stack->data[i]->to_run)
+            command_exec(stack->data[i]);
     }
+}
+
+void mark_cmd(command_stack *stack, char *id)
+{
+    for(int i = 0; i < stack->count; ++i) {
+        if(!strcmp(id, stack->data[i]->id)) {
+            stack->data[i]->to_run = 1;
+        }
+    }
+}
+
+void show_help()
+{
+    printf("Usage here\n");
 }

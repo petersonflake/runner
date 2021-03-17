@@ -51,6 +51,7 @@ void command_stack_free(command_stack *cmd_stack)
 
 void command_exec(command *cmd)
 {
+    if(!cmd->to_run) return;
     for(int i = 0; i < cmd->arguments->count; ++i) {
         pid_t pid = fork();
         /* Copy the name of the script into the first element of argv.  Manual says by convention,
