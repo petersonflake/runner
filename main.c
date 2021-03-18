@@ -29,6 +29,7 @@ int main(int argc, char **argv, char **envp)
     int file_provided = 0;  /* Whether a file was provided on the command line */
     int do_dry_run = 0;     /* Show what commands would be executed without running them */
     int completions = 0;    /* Used for bash tab completion */
+    int force_all = 0;      /* In case the user really wants to run all commands */
 
     while(1) {
         static struct option long_options[] = {
@@ -40,15 +41,19 @@ int main(int argc, char **argv, char **envp)
             {"quiet",   no_argument,            0,  'q'},
             {"show",    no_argument,            0,  's'},
             {"verbose", no_argument,            0,  'v'},
+            {"all",     no_argument,            0,  'a'},
             {0,         0,                      0,   0 },
         };
 
         int option_index = 0;
-        c = getopt_long(argc, argv, "vehsf:dcq", long_options, &option_index);
+        c = getopt_long(argc, argv, "vehsf:dcqa", long_options, &option_index);
         if(c == -1) break; /* End of options */
 
         switch(c) {
             case 0:
+                break;
+            case 'a':
+                force_all = 1;
                 break;
             case 'v':
                 ++verbosity;
@@ -73,23 +78,18 @@ int main(int argc, char **argv, char **envp)
             case 'd':
                 do_dry_run = 1;
                 break;
-
             case 'c':
                 completions = 1;
                 break;
-
             case 'q':
                 --verbosity;
                 break;
-
             case '?':
                 break;
-
             default:
                 abort();
         }
     }
-
     all_commands = init_cmd_stack(6);
     current_args = init_str_stack(6);
     current_argstack = init_argstack(6);        /* Must be initialized before we parse the files */
@@ -119,21 +119,34 @@ int main(int argc, char **argv, char **envp)
     if(argc == 1) {             /* The user passed no arguments.  Show all commands and exit */
         for(int i = 0; i < all_commands->count; ++i) {
             all_commands->data[i]->to_run = 1;
-            to_execute = 0;     /* Ensure that the commands cannot be run to prevent running all by mistake */
         }
         show_commands = 1;
-        to_execute = 0;
+        to_execute = 0;     /* Ensure that the commands cannot be run to prevent running all by mistake */
     }
-    if(optind < argc) {     /* All provided arguments will be marked for execution, or to be shown in a dry run, or in show mode */
-        int i = optind;
-        while(i < argc) {
+    if(force_all) {
+        for(int i = 0; i < all_commands->count; ++i) {
+            all_commands->data[i]->to_run = 1;
+        }
+        if(!to_execute && !show_commands && !do_dry_run)
+            show_commands = 1;
+    }
+    if(optind < argc && !force_all) {/* All provided arguments will be marked for execution, */
+        int i = optind;              /* or to be shown in a dry run, or in show mode */
+        while(i < argc) {            /* Unless -a --all flags passed */
             mark_cmd(all_commands, argv[i++]);
         }
+    } else if(optind < argc && force_all) {
+        fprintf(stderr, "-a --all flags mark all for execution.  If this was intended, run again without ids.\n");
+        exit(EXIT_FAILURE);
     }
-    if(optind == 1) {         /* All arguments were ids.  Show them and exit */
-        show_commands = 1;
-        to_execute = 0;
-        do_dry_run = 0;
+    if(optind == argc) {         /* All arguments were ids.  Show them and exit */
+        for(int i = 0; i < all_commands->count; ++i) {
+            all_commands->data[i]->to_run = 1;
+        }
+        if(to_execute && !(force_all)) {
+            to_execute = 0;         /* Don't accidentally run all commands */
+            fprintf(stderr, "Not executing all commands.  Use -a to force all commands to run.\n");
+        }
     }
     if(show_commands)
         print_commands(all_commands, 0);
@@ -211,6 +224,7 @@ void show_help()
 {
     printf("runner [OPTIONS] tasks\n");
     printf("--help -h       Show this help.\n");
+    printf("--all -a        Mark all commands for show or execution.\n");
     printf("--file -f       Provide file as argument.\n");
     printf("--exec -e       Execute all provided commands.\n");
     printf("--show -s       Show details about the command.\n");

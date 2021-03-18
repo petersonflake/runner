@@ -1,0 +1,65 @@
+.TH RUNNER 1 runner\-0.1
+.SH NAME
+runner \- script runner
+.SH SYNOPSIS
+.B runner
+.RB [ OPTIONS ]
+id
+.SH DESCRIPTION
+Runner runs commands with predefined arguments based on a file or files.
+.P
+Occasionally, it is necessary to run a command multiple times with different
+arguments to accomplish some task, or multiple commands with the same
+arguments each time.  This can be done with a shell script or a Makefile, but
+one runs into the issue of quoting arguments, doing repetitive work to handle
+command line options and so on, and then having a file either cluttering up
+one's path, or having to have a Makefile and be in the directory where you want
+a task executed.
+.P
+Runner handles this by reading files from a directory, or one provided on the
+command line, marking commands for execution based on provided identifiers,
+then executing each command in the order they are defined.  All commands
+marked with the same identifier in one of the files will be executed with the
+same identifier.
+.P
+.SH OPTIONS
+.TP
+.B \-v \-\-verbose
+Increase program output.
+.P
+.TP
+.B \-s \-\-show
+Show information about each of the marked commands.
+If no identifiers are provided, information about all commands is shown.
+.P
+.TP
+.B \-q \-\-quiet
+Reduce the amount of information output.
+If \-qq is passed, then programs are executed with their standard output and
+standard error redirected to /dev/null.
+.P
+.TP
+.B \-e \-\-exec
+Execute marked commands.
+.P
+.TP
+.B \-f \-\-file
+Read the file provided instead of those in the default location.
+.P
+.TP
+.B \-h \-\-help
+Show help and exit.
+.SH USAGE
+.P
+.TP
+.B \-a \-\-all
+Mark all commands to be shown or executed.
+.P
+.SH FILES
+The following directories are checked for input files, if one was not provided
+as an argument to the program.
+.IP "1. $XDG_CONFIG_HOME/runner"
+.IP "2. $HOME/.config/runner"
+.IP "3. $HOME/.runner"
+.P
+The first existing and accessible directory is scanned for any input files.

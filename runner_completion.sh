@@ -4,8 +4,8 @@ __runner()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    longopts="--help --verbose --quiet --show --file"
-    shortopts="-h -q -f -v -s -e"
+    longopts="--help --verbose --quiet --show --file --all --exec --dry-run"
+    shortopts="-h -q -f -v -s -e -a -d"
     ids="$(runner -c)"
     fileopts="--file"
 
