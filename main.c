@@ -116,19 +116,24 @@ int main(int argc, char **argv, char **envp)
         print_completions(all_commands);
         exit(EXIT_SUCCESS);
     }
+    if(argc == 1) {             /* The user passed no arguments.  Show all commands and exit */
+        for(int i = 0; i < all_commands->count; ++i) {
+            all_commands->data[i]->to_run = 1;
+            to_execute = 0;     /* Ensure that the commands cannot be run to prevent running all by mistake */
+        }
+        show_commands = 1;
+        to_execute = 0;
+    }
     if(optind < argc) {     /* All provided arguments will be marked for execution, or to be shown in a dry run, or in show mode */
         int i = optind;
         while(i < argc) {
             mark_cmd(all_commands, argv[i++]);
         }
     }
-    if(optind == argc) {         /* If the user does not provide any arguments, mark all commands */
-        for(int i = 0; i < all_commands->count; ++i) {
-            all_commands->data[i]->to_run = 1;
-            to_execute = 0;     /* Ensure that the commands cannot be run to prevent running all by mistake */
-        }
-        //print_commands(all_commands, 1);
-        //return 0;
+    if(optind == 1) {         /* All arguments were ids.  Show them and exit */
+        show_commands = 1;
+        to_execute = 0;
+        do_dry_run = 0;
     }
     if(show_commands)
         print_commands(all_commands, 0);
