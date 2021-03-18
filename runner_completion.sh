@@ -1,3 +1,3 @@
 #!/usr/bin/bash
-text="$(./testing -c)"
-complete -W "$text" testing
+text="$(runner -c)"
+complete -W "$text" runner
