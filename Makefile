@@ -3,7 +3,7 @@ SRC_PATH = .
 # If using flex and bison, set prefix here so *.l and *.y files can be processed
 FLEX_PREFIX = scr
 # pkg-config libraries
-LIBS = 
+LIBS =
 ## ncurses menu form sqlite3 etc, see pkg-config --list-all for all of them
 # General compilation flags
 COMPILE_FLAGS = -Wall -Wextra -g
@@ -51,6 +51,8 @@ all: dirs $(BISON_OBJ) $(FLEX_OBJECT)
 install:
 	@echo Installing to $(PREFIX)/bin
 	install $(BIN_PATH)/$(BIN_NAME) $(PREFIX)/bin
+	@echo Installing manual page.
+	cp ./runner.1 $(MAN_DIR)
 
 uninstall:
 	@echo Uninstalling
