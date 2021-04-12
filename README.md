@@ -73,12 +73,10 @@ syntax error".
 Features:
 * Call scripts or programs with predefined arguments.
 
-To-do list:
-* Variables
-* Passing additional arguments on the command line.
-
 ## Status
-Project is: _in progress_
+Project is: _complete_
+
+see [new version](https://github.com/petersonflake/runner2)
 
 ## Contact
 <mbfmitchell@gmail.com>
